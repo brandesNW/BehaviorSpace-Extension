@@ -42,6 +42,7 @@ Stats: empty
 Lists: empty
 Update View: true
 Update Plots And Monitors: true
+Mirror Headless Output: false
 
 Any properties can also be set explicitly to other default values. For code blocks, you can specify "do nothing" with
 an empty pair of square brackets.
@@ -106,6 +107,7 @@ an empty pair of square brackets.
 [`bspace:set-update-view`](#bspaceset-update-view)
 [`bspace:set-update-plots`](#bspaceset-update-plots)
 [`bspace:set-parallel-runs`](#bspaceset-parallel-runs)
+[`bspace:set-mirror-headless-output`](#bspaceset-mirror-headless-output)
 
 ### Getting Experiment Run Conditions
 
@@ -116,6 +118,7 @@ an empty pair of square brackets.
 [`bspace:get-update-view`](#bspaceget-update-view)
 [`bspace:get-update-plots`](#bspaceget-update-plots)
 [`bspace:get-parallel-runs`](#bspaceget-parallel-runs)
+[`bspace:get-mirror-headless-output`](#bspaceget-mirror-headless-output)
 
 ### Processing BehaviorSpace Output
 
@@ -225,7 +228,8 @@ bspace:export-experiment "/Users/hacker53/Documents/my-experiment.xml"
 #### bspace:clear-experiments
 
 Clear the list of stored experiments that have been created in the code, and reset all experiments that have been
-paused after running from the code. The model and all experiments created in the GUI will remain unchanged.
+paused after running from the code. Any running experiments that were created in the code will be aborted, but the
+model and all experiments created in the GUI will remain unchanged.
 
 Example:
 
@@ -321,6 +325,8 @@ Update plots:
 	true
 Parallel runs:
 	6
+Mirror Headless Output:
+	false
 ```
 
 ### bspace:experiment-exists
@@ -357,11 +363,12 @@ bspace:valid-experiment-name "my-experiment" false
 
 Set the variables to vary for the current working experiment. Each element of the input list should contain one
 constant or sub-experiment specification. An error will be thrown if no current working experiment has been set.
+Note that nested quotation marks must be escaped double quotes, using single quotes will cause errors.
 
 Example:
 
 ```
-bspace:set-variables [ "[ 'var1' 0 5 20 ]" ]
+bspace:set-variables [ "[ \"var1\" 0 5 20 ]" ]
 ```
 
 ### bspace:set-repetitions
@@ -392,15 +399,18 @@ bspace:set-sequential-run-order true
 
 ### bspace:set-metrics
 
-#### bspace:set-metrics *list*
+#### bspace:set-metrics *anonymous reporter*
+#### (bspace:set-metrics *anonymous reporter* ...)
 
 Set the metrics commands for the current working experiment. An error will be thrown if no current working experiment
-has been set. The first input must be a list of string commands.
+has been set. To set only one metric, the primitive can be called as normal with one input, but to set multiple
+metrics, the entire command must be surrounded with parentheses.
 
 Example:
 
 ```
-bspace:set-metrics [ "count turtles", "count patches" ]
+bspace:set-metrics [ count turtles ]
+(bspace:set-metrics [ count turtles ] [ count patches ])
 ```
 
 ### bspace:set-run-metrics-every-step
@@ -702,6 +712,19 @@ Example:
 bspace:set-parallel-runs 3
 ```
 
+### bspace:set-mirror-headless-output
+
+#### bspace:set-mirror-headless-output *boolean*
+
+Set whether the current working experiment should display its background output in the Command Center, if running in
+the GUI.
+
+Example:
+
+```
+bspace:set-mirror-headless-output true
+```
+
 ### bspace:get-spreadsheet
 
 #### bspace:get-spreadsheet
@@ -754,6 +777,13 @@ experiment has been set.
 
 Report the number of parallel runs for the current working experiment. An error will be thrown if no current working
 experiment has been set.
+
+### bspace:get-mirror-headless-output
+
+#### bspace:get-mirror-headless-output
+
+Report whether the current working experiment will display its background output in the Command Center, if running in
+the GUI.
 
 ### bspace:get-output-metric
 

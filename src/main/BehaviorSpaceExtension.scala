@@ -2,13 +2,14 @@
 
 package org.nlogo.extensions.bspace
 
-import org.nlogo.api.{ AnonymousProcedure, Argument, Command, Context, DefaultClassManager, LabDefaultValues,
-                       LabProtocol, LabRunOptions, PrimitiveManager, RefValueSet }
-import org.nlogo.window.GUIWorkspace
-
 import javax.swing.JOptionPane
 
-import scala.collection.mutable.{ Map, Set }
+import org.nlogo.api.{ AnonymousProcedure, Argument, Command, Context, DefaultClassManager, LabDefaultValues,
+                       LabProtocol, LabRunOptions, PrimitiveManager, RefValueSet }
+import org.nlogo.lab.Worker
+import org.nlogo.window.GUIWorkspace
+
+import scala.collection.mutable.Map
 
 class ExperimentData {
   var name = ""
@@ -33,6 +34,7 @@ class ExperimentData {
   var lists = ""
   var updateView = LabDefaultValues.getDefaultUpdateView
   var updatePlotsAndMonitors = LabDefaultValues.getDefaultUpdatePlotsAndMonitors
+  var mirrorHeadlessOutput = false
 }
 
 object ExperimentType extends Enumeration {
@@ -42,7 +44,7 @@ object ExperimentType extends Enumeration {
 
 object BehaviorSpaceExtension {
   val experiments = Map[String, ExperimentData]()
-  val experimentStack = Set[String]()
+  val experimentStack = Map[String, Worker]()
 
   var currentExperiment = ""
 
@@ -106,7 +108,7 @@ object BehaviorSpaceExtension {
   }
 
   def dataFromProtocol(protocol: LabProtocol): ExperimentData = {
-    val data = new ExperimentData()
+    val data = new ExperimentData
 
     data.name = protocol.name
     data.preExperimentCommands = protocol.preExperimentCommands
@@ -130,6 +132,7 @@ object BehaviorSpaceExtension {
     data.lists = protocol.runOptions.lists
     data.updateView = protocol.runOptions.updateView
     data.updatePlotsAndMonitors = protocol.runOptions.updatePlotsAndMonitors
+    data.mirrorHeadlessOutput = protocol.runOptions.mirrorHeadlessOutput
 
     data
   }
@@ -140,7 +143,8 @@ object BehaviorSpaceExtension {
                     data.runMetricsCondition, data.timeLimit, data.exitCondition, data.metrics, data.constants,
                     data.subExperiments, runOptions = new LabRunOptions(data.threadCount, data.table, data.spreadsheet,
                                                                         data.stats, data.lists, data.updateView,
-                                                                        data.updatePlotsAndMonitors))
+                                                                        data.updatePlotsAndMonitors,
+                                                                        data.mirrorHeadlessOutput))
   }
 
   def removeQuotes(string: String): String = {
@@ -189,6 +193,7 @@ class BehaviorSpaceExtension extends DefaultClassManager {
     manager.addPrimitive("set-lists", SetLists)
     manager.addPrimitive("set-update-view", SetUpdateView)
     manager.addPrimitive("set-update-plots", SetUpdatePlots)
+    manager.addPrimitive("set-mirror-headless-output", SetMirrorHeadlessOutput)
 
     manager.addPrimitive("goto-behaviorspace-documentation", GotoBehaviorspaceDocumentation)
     manager.addPrimitive("goto-bspace-extension-documentation", GotoBspaceExtensionDocumentation)
@@ -214,6 +219,7 @@ class BehaviorSpaceExtension extends DefaultClassManager {
     manager.addPrimitive("get-update-plots", GetUpdatePlots)
     manager.addPrimitive("get-default-parallel-runs", GetDefaultParallelRuns)
     manager.addPrimitive("get-recommended-max-parallel-runs", GetRecommendedMaxParallelRuns)
+    manager.addPrimitive("get-mirror-headless-output", GetMirrorHeadlessOutput)
 
     manager.addPrimitive("get-output-metric", GetOutputMetric)
 
